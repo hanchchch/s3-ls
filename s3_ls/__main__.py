@@ -37,7 +37,7 @@ def main():
         raise ValueError(f"Invalid S3 path: {args.s3_path}")
 
     bucket = url.netloc
-    prefix = url.path.lstrip("/")
+    prefix = url.path[1:]  # remove leading slash
 
     endpoint_url = os.getenv("AWS_ENDPOINT_URL_S3")
     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
