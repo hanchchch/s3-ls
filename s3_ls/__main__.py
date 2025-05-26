@@ -25,11 +25,16 @@ def readable_int(i: int, k: int = 1000) -> str:
         return f"{i}"
 
 
+header = ["etag", "last_modified", "s3_path", "size"]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("s3_path", type=str)
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--output", type=str, default="output.csv")
+    parser.add_argument("--workers", type=int, default=50)
+    parser.add_argument("--sort", action="store_true")
     args = parser.parse_args()
 
     url = urllib.parse.urlparse(args.s3_path)
@@ -49,41 +54,53 @@ def main():
         "aws_secret_access_key": aws_secret_access_key,
     }
 
-    f = open(args.output, "w")
-    writer = csv.writer(f)
-    writer.writerow(["etag", "last_modified", "s3_path", "size"])
-
     start = time.time()
     total_keys = 0
     total_size = 0
 
-    for obj in tqdm.tqdm(
-        list_objects(bucket, prefix, **s3_kwargs),
-        total=args.limit,
-    ):
-        etag = obj["ETag"].strip('"')
-        last_modified = obj["LastModified"].isoformat()
-        key = obj["Key"]
-        size = obj["Size"]
+    with open(args.output, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
 
-        total_keys += 1
-        total_size += size
+        for obj in tqdm.tqdm(
+            list_objects(bucket, prefix, max_workers=args.workers, **s3_kwargs),
+            total=args.limit,
+        ):
+            etag = obj["ETag"].strip('"')
+            last_modified = obj["LastModified"].isoformat()
+            key = obj["Key"]
+            size = obj["Size"]
 
-        if args.limit and total_keys > args.limit:
-            break
+            total_keys += 1
+            total_size += size
 
-        row = [
-            etag,
-            last_modified,
-            "s3://" + bucket + "/" + key,
-            size,
-        ]
-        writer.writerow(row)
+            if args.limit and total_keys > args.limit:
+                break
+
+            row = [
+                etag,
+                last_modified,
+                "s3://" + bucket + "/" + key,
+                size,
+            ]
+            writer.writerow(row)
 
     end = time.time()
     print(f"Time taken: {end - start} seconds")
     print(f"Total objects: {readable_int(total_keys)}")
     print(f"Total size: {readable_int(total_size)}B")
+
+    if args.sort:
+        print(f"Sorting {args.output}...")
+        with open(args.output, "r") as f:
+            reader = csv.reader(f)
+            next(reader)  # skip header
+            rows = sorted(reader, key=lambda x: x[2])
+
+        with open(args.output, "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            writer.writerows(rows)
 
 
 if __name__ == "__main__":
