@@ -12,15 +12,15 @@ from s3_ls import list_objects
 dotenv.load_dotenv()
 
 
-def readable_int(i: int) -> str:
-    if i >= 1024**4:
-        return f"{i / 1024**4:.2f} T"
-    elif i >= 1024**3:
-        return f"{i / 1024**3:.2f} G"
-    elif i >= 1024**2:
-        return f"{i / 1024**2:.2f} M"
-    elif i >= 1024:
-        return f"{i / 1024:.2f} K"
+def readable_int(i: int, k: int = 1000) -> str:
+    if i >= k**4:
+        return f"{i / k**4:.2f} T"
+    elif i >= k**3:
+        return f"{i / k**3:.2f} G"
+    elif i >= k**2:
+        return f"{i / k**2:.2f} M"
+    elif i >= k:
+        return f"{i / k:.2f} K"
     else:
         return f"{i}"
 
@@ -54,22 +54,23 @@ def main():
     writer.writerow(["etag", "last_modified", "s3_path", "size"])
 
     start = time.time()
-    i = 0
+    total_keys = 0
     total_size = 0
+
     for obj in tqdm.tqdm(
         list_objects(bucket, prefix, **s3_kwargs),
         total=args.limit,
     ):
-        i += 1
-        if args.limit and i > args.limit:
-            break
-
         etag = obj["ETag"].strip('"')
         last_modified = obj["LastModified"].isoformat()
         key = obj["Key"]
         size = obj["Size"]
 
+        total_keys += 1
         total_size += size
+
+        if args.limit and total_keys > args.limit:
+            break
 
         row = [
             etag,
@@ -81,7 +82,7 @@ def main():
 
     end = time.time()
     print(f"Time taken: {end - start} seconds")
-    print(f"Total objects: {readable_int(i)}")
+    print(f"Total objects: {readable_int(total_keys)}")
     print(f"Total size: {readable_int(total_size)}B")
 
 
