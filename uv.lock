@@ -82,7 +82,7 @@ wheels = [
 
 [[package]]
 name = "s3-ls"
-version = "0.0.1"
+version = "0.0.3"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },
@@ -92,9 +92,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3", specifier = ">=1.38.2" },
-    { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "tqdm", specifier = ">=4.67.1" },
+    { name = "boto3" },
+    { name = "dotenv" },
+    { name = "tqdm" },
 ]
 
 [[package]]

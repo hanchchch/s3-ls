@@ -1,6 +1,6 @@
 [project]
 name = "s3-ls"
-version = "0.0.2"
+version = "0.0.3"
 description = "Fast S3 object listing"
 authors = [
   {name = "Hanch Han", email = "cndghks15@gmail.com"}
@@ -9,9 +9,9 @@ license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "boto3>=1.38.2",
-    "dotenv>=0.9.9",
-    "tqdm>=4.67.1",
+    "boto3",
+    "dotenv",
+    "tqdm",
 ]
 
 [project.scripts]
