@@ -1,6 +1,6 @@
 [project]
 name = "s3-ls"
-version = "0.0.3"
+version = "0.0.4"
 description = "Fast S3 object listing"
 authors = [
   {name = "Hanch Han", email = "cndghks15@gmail.com"}

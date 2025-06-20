@@ -35,6 +35,7 @@ def main():
     parser.add_argument("--output", type=str, default="output.csv")
     parser.add_argument("--workers", type=int, default=50)
     parser.add_argument("--sort", action="store_true")
+    parser.add_argument("--order-by", type=str, default=None)
     args = parser.parse_args()
 
     url = urllib.parse.urlparse(args.s3_path)
@@ -90,12 +91,23 @@ def main():
     print(f"Total objects: {readable_int(total_keys)}")
     print(f"Total size: {readable_int(total_size)}B")
 
-    if args.sort:
+    if args.sort or args.order_by:
         print(f"Sorting {args.output}...")
         with open(args.output, "r") as f:
             reader = csv.reader(f)
             next(reader)  # skip header
-            rows = sorted(reader, key=lambda x: x[2])
+
+            order_key = 2
+            if args.order_by == "last_modified":
+                order_key = 1
+            elif args.order_by == "s3_path":
+                order_key = 2
+            elif args.order_by == "size":
+                order_key = 3
+            elif args.order_by == "etag":
+                order_key = 0
+
+            rows = sorted(reader, key=lambda x: x[order_key])
 
         with open(args.output, "w") as f:
             writer = csv.writer(f)
